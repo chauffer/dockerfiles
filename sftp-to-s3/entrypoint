@@ -1,0 +1,21 @@
+#!/bin/bash
+set -e
+
+adduser --disabled-password --shell /bin/false --gecos "" --force-badname --ingroup fuse $FTP_USER
+echo "$FTP_USER:$FTP_PASS" | chpasswd
+
+echo $AWS_ACCESS_KEY:$AWS_SECRET_KEY > /s3credentials
+chmod 600 /s3credentials
+
+s3fs $S3_BUCKET /home/$FTP_USER \
+  -o use_sse \
+  -o passwd_file=/s3credentials \
+  -o nonempty \
+  -o allow_other \
+  -o url=https://s3.amazonaws.com \
+  -o uid=$(id -u $FTP_USER)
+
+echo "SFTP credentials: $FTP_USER:$FTP_PASS"
+echo "S3 Bucket: $S3_BUCKET"
+echo "Ready to accept connections..."
+exec /usr/sbin/sshd -D

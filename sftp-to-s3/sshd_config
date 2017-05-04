@@ -1,0 +1,6 @@
+PasswordAuthentication yes
+Subsystem sftp internal-sftp
+Match group fuse
+X11Forwarding no
+AllowTcpForwarding no
+ForceCommand internal-sftp
