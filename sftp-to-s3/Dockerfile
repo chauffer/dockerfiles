@@ -1,29 +1,29 @@
-FROM ubuntu:16.04
+FROM alpine:3.5
 
-# Fork of emmekappa/sftp-to-s3
+ARG S3FS_VERSION=v1.79
 
-# S3 configuration
-ENV AWS_ACCESS_KEY_ID=NotSet \
-    AWS_SECRET_ACCESS_KEY=NotSet \
-    S3_BUCKET=NotSet \
-    DEBIAN_FRONTEND=noninteractive
-
-RUN apt-get update &&\
-    apt-get -y --no-install-recommends install openssh-server mime-support build-essential git libfuse-dev libcurl4-openssl-dev libxml2-dev automake libtool pkg-config libssl-dev ca-certificates &&\
-    git clone https://github.com/s3fs-fuse/s3fs-fuse /tmp/s3fs-fuse &&\
-    cd /tmp/s3fs-fuse &&\
-    ./autogen.sh &&\
-    ./configure --prefix=/usr --with-openssl &&\
-    make &&\
-    make install &&\
-    mkdir -p /var/run/sshd &&\
-    apt-get -y remove build-essential git libfuse-dev libcurl4-openssl-dev libxml2-dev  automake libtool pkg-config libssl-dev ca-certificates &&\
-    rm -rf /var/apt/lists/* /tmp/* 
+MAINTAINER Simone Esposito <chaufnet@gmail.com>
 
 COPY entrypoint /
-COPY sshd_config /etc/ssh/sshd_config
 
-RUN chmod +x /entrypoint
+RUN apk add --no-cache openssh openssh-sftp-server dropbear &&\
+	rm -rf /var/cache/apk/* &&\
+	mkdir /etc/dropbear &&\
+	touch /var/log/lastlog	&&\
+	chmod +x /entrypoin&&t
 
+RUN apk --no-cache add fuse alpine-sdk automake autoconf libxml2-dev fuse-dev curl-dev git bash &&\
+    git clone https://github.com/s3fs-fuse/s3fs-fuse.git /tmp/s3fs &&\
+    cd /tmp/s3fs &&\
+    git checkout tags/${S3FS_VERSION} &&\
+    ./autogen.sh &&\
+    ./configure --prefix=/usr &&\
+    make &&\
+    make install &&\
+    rm -rf /tmp/*
+
+VOLUME /etc/ssh
 EXPOSE 22
+
 ENTRYPOINT ["/entrypoint"]
+CMD ["dropbear", "-RFEmwg", "-p", "22"]

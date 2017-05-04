@@ -1,11 +1,16 @@
 #!/bin/bash
 set -e
 
-adduser --disabled-password --shell /bin/false --gecos "" --force-badname --ingroup fuse $FTP_USER
-echo "$FTP_USER:$FTP_PASS" | chpasswd
+echo "Creating user ${FTP_USER}"
+adduser -D ${FTP_USER}
+echo "${FTP_USER}:${FTP_PASS}" | chpasswd
 
 echo $AWS_ACCESS_KEY:$AWS_SECRET_KEY > /s3credentials
 chmod 600 /s3credentials
+
+mkdir -p /home/$FTP_USER
+chown root:root /home/$FTP_USER
+chmod 744 /home/$FTP_USER
 
 s3fs $S3_BUCKET /home/$FTP_USER \
   -o use_sse \
@@ -15,7 +20,23 @@ s3fs $S3_BUCKET /home/$FTP_USER \
   -o url=https://s3.amazonaws.com \
   -o uid=$(id -u $FTP_USER)
 
+echo "PasswordAuthentication yes
+Subsystem sftp internal-sftp
+Match User $FTP_USER
+ChrootDirectory /home/$FTP_USER
+ForceCommand internal-sftp
+AllowTCPForwarding no
+X11Forwarding no" > /etc/ssh/sshd_config
+
+if [ ! -f /etc/ssh/ssh_host_rsa_key ]
+then
+    ssh-keygen -t rsa -b 2048 -N '' -f /etc/ssh/ssh_host_rsa_key
+    ssh-keygen -t dsa -N '' -f /etc/ssh/ssh_host_dsa_key
+    ssh-keygen -t ecdsa -N '' -f /etc/ssh/ssh_host_ecdsa_key
+    ssh-keygen -t ed25519 -N '' -f /etc/ssh/ssh_host_ed25519_key || true
+fi
+
 echo "SFTP credentials: $FTP_USER:$FTP_PASS"
 echo "S3 Bucket: $S3_BUCKET"
 echo "Ready to accept connections..."
-exec /usr/sbin/sshd -D
+exec $@
