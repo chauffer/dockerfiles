@@ -25,7 +25,7 @@ export AWSSECRETACCESSKEY=$AWS_SECRET_KEY
 
 mkdir -p /home/$FTP_USER
 chown root:root /home/$FTP_USER
-chmod 744 /home/$FTP_USER
+chmod 745 /home/$FTP_USER
 
 mkdir -p /home/$FTP_USER/s3
 s3fs $S3_BUCKET /home/$FTP_USER/s3  -o nosuid,nonempty,nodev,allow_other,retries=5
