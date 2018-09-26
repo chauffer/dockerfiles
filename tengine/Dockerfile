@@ -1,6 +1,6 @@
-FROM alpine:3.5
+FROM alpine:3.8
 
-ENV TENGINE_VERSION 2.2.0
+ENV TENGINE_VERSION 2.2.2
 
 # Fork of https://github.com/kairyou/alpine-tengine
 
