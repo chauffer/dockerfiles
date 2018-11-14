@@ -8,4 +8,6 @@ RUN mkdir -p /opt/oauth2-proxy/bin && mkdir /opt/oauth2-proxy/etc && \
 
 CMD oauth2_proxy -config=/opt/oauth2-proxy/etc/config
 
-LABEL name=oauth2-proxy version=2.2.0 maintainer="Simone <simone@kiwi.com>"
+EXPOSE 4180
+
+LABEL name=oauth2-proxy version=2.2.0 maintainer="Simone Esposito <chaufnet@gmail.com>"
